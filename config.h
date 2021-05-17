@@ -15,10 +15,6 @@ static int swallowfloating    = 0;        /* 1 means swallow floating windows by
 static int smartgaps          = 0;        /* 1 means no outer gap when there is only one window */
 static int showbar            = 1;        /* 0 means no bar */
 static int topbar             = 1;        /* 0 means bottom bar */
-static const int usealtbar          = 1;        /* 1 means use non-dwm status bar */
-static const char *altbarclass      = "Polybar"; /* Alternate bar class name */
-static const char *alttrayname      = "tray";    /* Polybar tray instance name */
-static const char *altbarcmd        = "$HOME/.local/bin/bar.sh"; /* Alternate bar launch command */
 static char *fonts[]          = { "monospace:size=10", "JoyPixels:pixelsize=10:antialias=true:autohint=true"  };
 static char normbgcolor[]           = "#222222";
 static char normbordercolor[]       = "#444444";
@@ -191,7 +187,6 @@ static Key keys[] = {
 
 	{ MODKEY,			XK_a,		togglegaps,	{0} },
 	{ MODKEY|ShiftMask,		XK_a,		defaultgaps,	{0} },
-	{ MODKEY|ControlMask,   XK_a,		spawn,	SHCMD("dmenuawsid") },
 	{ MODKEY|ShiftMask,	    XK_s,		togglesticky,	{0} },
 	{ MODKEY,   		    XK_s,		spawn,		SHCMD("dmenussh") },
 	{ MODKEY,			XK_space,		spawn,          SHCMD("dmenu_run") },
