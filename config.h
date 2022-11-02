@@ -5,12 +5,13 @@
 #define TERMCLASS "St"
 
 /* appearance */
-static unsigned int borderpx  = 3;        /* border pixel of windows */
+static unsigned int borderpx  = 0;        /* border pixel of windows */
 static unsigned int snap      = 32;       /* snap pixel */
 static unsigned int gappih    = 10;       /* horiz inner gap between windows */
 static unsigned int gappiv    = 10;       /* vert inner gap between windows */
 static unsigned int gappoh    = 10;       /* horiz outer gap between windows and screen edge */
 static unsigned int gappov    = 30;       /* vert outer gap between windows and screen edge */
+static unsigned int cornerrad = 6;
 static int swallowfloating    = 0;        /* 1 means swallow floating windows by default */
 static int smartgaps          = 0;        /* 1 means no outer gap when there is only one window */
 static int showbar            = 1;        /* 0 means no bar */
@@ -44,7 +45,7 @@ static Sp scratchpads[] = {
 };
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *tags[] = { "shell", "dev", "web", "db", "pass", "other" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -91,8 +92,8 @@ static const Layout layouts[] = {
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
 #define STACKKEYS(MOD,ACTION) \
-	{ MOD,	XK_j,	ACTION##stack,	{.i = INC(+1) } }, \
-	{ MOD,	XK_k,	ACTION##stack,	{.i = INC(-1) } }, \
+	{ MOD,	XK_n,	ACTION##stack,	{.i = INC(+1) } }, \
+	{ MOD,	XK_e,	ACTION##stack,	{.i = INC(-1) } }, \
 	{ MOD,  XK_v,   ACTION##stack,  {.i = 0 } }, \
 	/* { MOD, XK_grave, ACTION##stack, {.i = PREVSEL } }, \ */
 	/* { MOD, XK_a,     ACTION##stack, {.i = 1 } }, \ */
@@ -165,14 +166,14 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,		XK_w,		spawn,		SHCMD(TERMINAL " -e sudo nmtui") },
 	{ MODKEY,			XK_r,		spawn,		SHCMD(TERMINAL " -e lf") },
 	{ MODKEY|ShiftMask,		XK_r,		spawn,		SHCMD(TERMINAL " -e htop") },
-	{ MODKEY,			XK_t,		setlayout,	{.v = &layouts[0]} }, /* tile */
-	{ MODKEY|ShiftMask,		XK_t,		setlayout,	{.v = &layouts[1]} }, /* bstack */
-	{ MODKEY,			XK_y,		setlayout,	{.v = &layouts[2]} }, /* spiral */
-	{ MODKEY|ShiftMask,		XK_y,		setlayout,	{.v = &layouts[3]} }, /* dwindle */
+	{ MODKEY,			XK_j,		setlayout,	{.v = &layouts[0]} }, /* tile */
+	{ MODKEY|ShiftMask,		XK_j,		setlayout,	{.v = &layouts[1]} }, /* bstack */
+	{ MODKEY,			XK_l,		setlayout,	{.v = &layouts[2]} }, /* spiral */
+	{ MODKEY|ShiftMask,		XK_l,		setlayout,	{.v = &layouts[3]} }, /* dwindle */
 	{ MODKEY,			XK_u,		setlayout,	{.v = &layouts[4]} }, /* deck */
 	{ MODKEY|ShiftMask,		XK_u,		setlayout,	{.v = &layouts[5]} }, /* monocle */
-	{ MODKEY,			XK_i,		setlayout,	{.v = &layouts[6]} }, /* centeredmaster */
-	{ MODKEY|ShiftMask,		XK_i,		setlayout,	{.v = &layouts[7]} }, /* centeredfloatingmaster */
+	{ MODKEY,			XK_y,		setlayout,	{.v = &layouts[6]} }, /* centeredmaster */
+	{ MODKEY|ShiftMask,		XK_y,		setlayout,	{.v = &layouts[7]} }, /* centeredfloatingmaster */
 	{ MODKEY,			XK_o,		incnmaster,     {.i = +1 } },
 	{ MODKEY|ShiftMask,		XK_o,		incnmaster,     {.i = -1 } },
 	{ MODKEY,			XK_p,			spawn,		SHCMD("passmenu") },
@@ -197,7 +198,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,		XK_g,		shifttag,	{ .i = -1 } },
 	{ MODKEY,			XK_h,		setmfact,	{.f = -0.05} },
 	/* J and K are automatically bound above in STACKEYS */
-	{ MODKEY,			XK_l,		setmfact,      	{.f = +0.05} },
+	{ MODKEY,			XK_i,		setmfact,      	{.f = +0.05} },
 	{ MODKEY,			XK_semicolon,	shiftview,	{ .i = 1 } },
 	{ MODKEY|ShiftMask,		XK_semicolon,	shifttag,	{ .i = 1 } },
 	{ MODKEY,			XK_apostrophe,	togglescratch,	{.ui = 1} },
@@ -214,8 +215,6 @@ static Key keys[] = {
 	/* V is automatically bound above in STACKKEYS */
 	{ MODKEY,			XK_b,		togglebar,	{0} },
 	/* { MODKEY|ShiftMask,		XK_b,		spawn,		SHCMD("") }, */
-	{ MODKEY,			XK_n,		spawn,		SHCMD(TERMINAL " -e nvim -c VimwikiIndex") },
-	{ MODKEY|ShiftMask,		XK_n,		spawn,		SHCMD(TERMINAL " -e newsboat; pkill -RTMIN+6 dwmblocks") },
 	{ MODKEY,			XK_m,		spawn,		SHCMD(TERMINAL " -e ncmpcpp") },
 	{ MODKEY|ControlMask,   XK_m,		spawn,		SHCMD("manpdf") },
 	{ MODKEY|ShiftMask,		XK_m,		spawn,		SHCMD("pamixer -t; kill -44 $(pidof dwmblocks)") },

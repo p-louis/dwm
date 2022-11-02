@@ -41,6 +41,7 @@
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
+#include <X11/extensions/shape.h>
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
 #include <xcb/res.h>
@@ -69,6 +70,8 @@
 #define SPTAGMASK		(((1 << LENGTH(scratchpads))-1) << LENGTH(tags))
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 #define TRUNC(X,A,B)            (MAX((A), MIN((X), (B))))
+
+#define CORNER_RADIUS 5
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
@@ -304,6 +307,7 @@ static int wmclasscontains(Window win, const char *class, const char *name);
 static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
+static void drawroundedcorners(Client *c);
 static void zoom(const Arg *arg);
 static void load_xresources(void);
 static void resource_load(XrmDatabase db, char *name, enum resource_type rtype, void *dst);
@@ -562,6 +566,9 @@ unswallow(Client *c)
 	setfullscreen(c, 0);
 	updatetitle(c);
 	arrange(c->mon);
+
+  drawroundedcorners(c);
+
 	XMapWindow(dpy, c->win);
 
 	XWindowChanges wc;
@@ -1578,6 +1585,53 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	XSync(dpy, False);
 }
 
+void drawroundedcorners(Client *c) {
+	Window w = c->win;
+	XWindowAttributes wa;
+	XGetWindowAttributes(dpy, w, &wa);
+
+	// If this returns null, the window is invalid.
+	if(!XGetWindowAttributes(dpy, w, &wa))
+		return;
+
+	int width = borderpx * 2 + wa.width;
+	int height = borderpx * 2 + wa.height;
+	/* int width = win_attr.border_width * 2 + win_attr.width; */
+	/* int height = win_attr.border_width * 2 + win_attr.height; */
+	int rad = cornerrad * enablegaps; //config_theme_cornerradius;
+	int dia = 2 * rad;
+
+	// do not try to round if the window would be smaller than the corners
+	if(width < dia || height < dia)
+		return;
+
+	Pixmap mask = XCreatePixmap(dpy, w, width, height, 1);
+	// if this returns null, the mask is not drawable
+	if(!mask)
+		return;
+
+	XGCValues xgcv;
+	GC shape_gc = XCreateGC(dpy, mask, 0, &xgcv);
+	if(!shape_gc) {
+		XFreePixmap(dpy, mask);
+		return;
+	}
+
+	XSetForeground(dpy, shape_gc, 0);
+	XFillRectangle(dpy, mask, shape_gc, 0, 0, width, height);
+	XSetForeground(dpy, shape_gc, 1);
+	XFillArc(dpy, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
+	XFillArc(dpy, mask, shape_gc, width-dia-1, 0, dia, dia, 0, 23040);
+	XFillArc(dpy, mask, shape_gc, 0, height-dia-1, dia, dia, 0, 23040);
+	XFillArc(dpy, mask, shape_gc, width-dia-1, height-dia-1, dia, dia, 0, 23040);
+	XFillRectangle(dpy, mask, shape_gc, rad, 0, width-dia, height);
+	XFillRectangle(dpy, mask, shape_gc, 0, rad, width, height-dia);
+	XShapeCombineMask(dpy, w, ShapeBounding, 0-wa.border_width, 0-wa.border_width, mask, ShapeSet);
+	XFreePixmap(dpy, mask);
+	XFreeGC(dpy, shape_gc);
+}
+
+
 void
 resizemouse(const Arg *arg)
 {
@@ -1622,6 +1676,7 @@ resizemouse(const Arg *arg)
 			}
 			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
 				resize(c, c->x, c->y, nw, nh, 1);
+			drawroundedcorners(c);
 			break;
 		}
 	} while (ev.type != ButtonRelease);
@@ -1633,6 +1688,7 @@ resizemouse(const Arg *arg)
 		selmon = m;
 		focus(NULL);
 	}
+	drawroundedcorners(c);
 }
 
 void
@@ -1642,6 +1698,8 @@ restack(Monitor *m)
 	XEvent ev;
 	XWindowChanges wc;
 
+	for (c = m->stack; c; c = c->snext)
+		drawroundedcorners(c);
 	drawbar(m);
 	if (!m->sel)
 		return;
